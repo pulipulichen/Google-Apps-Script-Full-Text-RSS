@@ -2,7 +2,7 @@
  * @author Pulipuli Chen 20180723 00:47
  */
 
-doGet = function (e) {
+doGet = function (CONFIG, e) {
     /*
     var redirect = e.parameter.redirect;
     if (redirect !== undefined) {
@@ -16,14 +16,15 @@ doGet = function (e) {
     */
 
     // ------------------------
-    var cache = CacheService.getScriptCache();
+    //var cache = CacheService.getScriptCache();
 
     var rss = makeRss();
 
     var atomLink = ScriptApp.getService().getUrl();
     rss.setAtomlink(atomLink);
 
-    var _rss_data = parse_rss(CONFIG.feed_url);
+    var _original_rss = UrlFetchApp.fetch(CONFIG.feed_url).getContentText();
+    var _rss_data = CONFIG.parse_feed(_original_rss);
     
     // -------------------------------
     // channel的部分
@@ -76,16 +77,7 @@ doGet = function (e) {
         var _get_data = function (_config, _original_value) {
             if (_config.fetch === true) {
                 if (_full_text === null && typeof(_item.link) === "string") {
-                    var _cache = cache_get(_item.link);
-                    //_cache = null;
-                    
-                    if (_cache === null) {
-                        _full_text = UrlFetchApp.fetch(_item.link).getContentText();
-                        cache_put(_item.link, _full_text);
-                    }
-                    else {
-                        _full_text = _cache;
-                    }
+                    _full_text = fetch_url(_item.link);
                 }
                 _original_value = _full_text;
             }
@@ -608,4 +600,15 @@ var cache_get = function (_key) {
     } while (true);
     
     return _split_data.join("");
+};
+
+var fetch_url = function (_url) {
+    var _cache = cache_get(_url);
+    //_cache = null;
+    var _output = null;
+    if (_cache === null) {
+        _output = UrlFetchApp.fetch(_url).getContentText();
+        cache_put(_url, _output);
+    }
+    return _output;
 };
