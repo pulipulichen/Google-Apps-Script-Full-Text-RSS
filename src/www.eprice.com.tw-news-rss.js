@@ -7,22 +7,51 @@ CONFIG = {
     feed_url: "http://www.eprice.com.tw/news/rss.xml",
     //image_url: "http://img.eprice.com.tw/img/tw/common/header/logo.filpboard.png",
     //langauge: 'zh-TW',
-    limit: null,
+    limit: 5,
     title: {
         fetch: false,
-        filter: function (title) {
+        filter: function (title, link) {
             return title;
         }
     },
     author: {
         fetch: false,
-        filter: function (author) {
+        exclude_list: [
+            "活動小組(eprice_sp)"
+        ],
+        filter: function (author, link) {
             return author;
         }
     },
     description: {
-        fetch: false,
-        filter: function (description) {
+        fetch: true,
+        filter: function (description, link) {
+            
+            //var _header = '<div class="user-comment-block"  itemprop="description">';
+            var _header = '<div class="user-comment-block"';
+            //var _footer = '<div class="signature">http://www.eprice.com.tw 最新最快的資訊都在 ePrice 比價王！</div>';
+            var _footer = '<div class="signature">';
+            description = searchNeedle(description, _header, _footer)[0];
+            if (description === undefined) {
+                throw "description parsing error: " + link;
+            }
+            description = remove_prefix(description, 'itemprop="description">');
+            
+            description = description.split('.tmp" data-original="').join('" data-original-tmp="');
+            
+            description = remove_scripts(description).trim();
+            description = remove_nbsp(description).trim();
+            
+            // 先刪去最後的div
+            while (ends_with(description, '</div>')) {
+                description = remove_suffix(description, '</div>').trim();
+            }
+            
+            // 刪去最後的br
+            while (ends_with(description, '<br />')) {
+                description = remove_suffix(description, '<br />').trim();
+            }
+            
             return description;
         }
     }
@@ -82,21 +111,29 @@ function doGet(e) {
     
     // -----------------------------------------------------
     // item的部分
-    
+    var _item_added_count = 0;
     for (var _i in _rss_data.item) {
+        if (typeof(CONFIG.limit) === "number" && _item_added_count >= CONFIG.limit) {
+            break;
+        }
+        
         var _item = _rss_data.item[_i];
         
-        var _full_text;
+        var _full_text = null;
         
         var _get_data = function (_config, _original_value) {
             if (_config.fetch === true) {
-                if (_full_text === undefined && typeof(_item.link) === "string") {
+                if (_full_text === null && typeof(_item.link) === "string") {
                     _full_text = UrlFetchApp.fetch(_item.link).getContentText();
                 }
                 _original_value = _full_text;
             }
             
-            return _config.filter(_original_value);
+            return _config.filter(_original_value, _item.link);
+        };
+        
+        var _is_excluded = function (_config, _value) {
+            return (Array.isArray(_config.exclude_list) && _config.exclude_list.indexOf(_value) > -1);
         };
         
         if (typeof(_item.title) !== "undefined") {
@@ -104,6 +141,9 @@ function doGet(e) {
         }
         if (typeof(_item.author) !== "undefined") {
             _item.author = _get_data(CONFIG.author, _item.author);
+            if (_is_excluded(CONFIG.author, _item.author)) {
+                continue;
+            }
         }
         if (typeof(_item.description) !== "undefined") {
             _item.description = _get_data(CONFIG.description, _item.description);
@@ -120,10 +160,7 @@ function doGet(e) {
         // -----------------
         
         rss.addItem(_item);
-        
-        if (typeof(CONFIG.limit) === "number" && _i >= CONFIG.limit) {
-            break;
-        }
+        _item_added_count++;
     }
 
     return ContentService.createTextOutput(rss.toString())
@@ -379,13 +416,15 @@ var parse_tag_text = function (_text, _tag_name) {
 };
 
 var redirect_link = function (_link) {
+    return _link;
+    
     var atomLink = ScriptApp.getService().getUrl();
     atomLink = atomLink + "?redirect=" + encodeURIComponent(_link);
     return atomLink;
 };
 
 var parse_cdata = function (_text) {
-    if (_text === undefined) {
+    if (typeof(_text) !== "string") {
         return _text;
     }
     
@@ -402,4 +441,59 @@ var parse_cdata = function (_text) {
     }
     
     return _text;
+};
+
+var remove_prefix = function (_str, _needle) {
+    if (typeof(_str) !== "string") {
+        return _str;
+    }
+    if (_str.indexOf(_needle) === 0) {
+        _str = _str.substring(_needle.length, _str.length);
+    }
+    return _str;
+};
+
+var remove_suffix = function (_str, _needle) {
+    if (typeof(_str) !== "string") {
+        return _str;
+    }
+    if (_str.lastIndexOf(_needle) === _str.length - _needle.length) {
+        _str = _str.substring(0, _str.length - _needle.length);
+    }
+    return _str;
+};
+
+var remove_scripts = function (_html) {
+    if (typeof(_html) !== "string") {
+        return _html;
+    }
+    
+    var _output = '';
+    var _parts = _html.split("<script");
+    for (var _i = 0; _i < _parts.length; _i++) {
+        if (_i === 0) {
+            _output = _parts[_i];
+        }
+        else {
+            var _part = _parts[_i];
+            _part = _part.substring(_part.indexOf("</script>") + 9 , _part.length).trim();
+            _output = _output + _part;
+        }
+    }
+    
+    return _output;
+};
+
+var remove_nbsp = function (_html) {
+    if (typeof(_html) !== "string") {
+        return _html;
+    }
+    return _html.split("&nbsp;").join("");
+};
+
+var ends_with = function (_str, _needle) {
+    if (typeof(_str) !== "string") {
+        return false;
+    }
+    return (_str.lastIndexOf(_needle) === _str.length - _needle.length);
 };
