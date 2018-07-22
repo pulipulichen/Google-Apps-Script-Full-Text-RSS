@@ -1,68 +1,9 @@
 /**
- * @author Pulipuli Chen 20180722
- * https://script.google.com/d/14ZpRNJ5er0ha-4954gUa3NCgBR9APiEuaW-C9nrWCzhaaeQWraxcn_Y-/edit?splash=yes
- */
-
-CONFIG = {
-    feed_url: "http://www.eprice.com.tw/news/rss.xml",
-    //image_url: "http://img.eprice.com.tw/img/tw/common/header/logo.filpboard.png",
-    //langauge: 'zh-TW',
-    limit: null,
-    title: {
-        fetch: false,
-        filter: function (title, link) {
-            return title;
-        }
-    },
-    author: {
-        fetch: false,
-        exclude_list: [
-            "活動小組(eprice_sp)"
-        ],
-        filter: function (author, link) {
-            return author;
-        }
-    },
-    description: {
-        fetch: true,
-        filter: function (description, link) {
-            
-            //var _header = '<div class="user-comment-block"  itemprop="description">';
-            var _header = '<div class="user-comment-block"';
-            //var _footer = '<div class="signature">http://www.eprice.com.tw 最新最快的資訊都在 ePrice 比價王！</div>';
-            var _footer = '<div class="signature">';
-            description = searchNeedle(description, _header, _footer)[0];
-            if (description === undefined) {
-                throw "description parsing error: " + link;
-            }
-            description = remove_prefix(description, 'itemprop="description">');
-            
-            description = description.split('.tmp" data-original="').join('" data-original-tmp="');
-            
-            description = remove_scripts(description).trim();
-            description = remove_nbsp(description).trim();
-            
-            // 先刪去最後的div
-            while (ends_with(description, '</div>')) {
-                description = remove_suffix(description, '</div>').trim();
-            }
-            
-            // 刪去最後的br
-            while (ends_with(description, '<br />')) {
-                description = remove_suffix(description, '<br />').trim();
-            }
-            
-            return description;
-        }
-    }
-};
-
-// -------------------------------------
-/**
  * @author Pulipuli Chen 20180723 00:47
  */
 
-function doGet(e) {
+doGet = function (e) {
+    /*
     var redirect = e.parameter.redirect;
     if (redirect !== undefined) {
         redirect = decodeURIComponent(redirect);
@@ -72,6 +13,7 @@ function doGet(e) {
         //return;
         return HtmlService.createHtmlOutput("<script>location.href='" + redirect + "';</script>");
     }
+    */
 
     // ------------------------
     var cache = CacheService.getScriptCache();

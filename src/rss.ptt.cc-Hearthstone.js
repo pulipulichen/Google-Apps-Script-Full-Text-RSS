@@ -44,6 +44,9 @@ CONFIG = {
 };
 
 // -------------------------------------
+/**
+ * @author Pulipuli Chen 20180723 00:47
+ */
 
 function doGet(e) {
     var redirect = e.parameter.redirect;
@@ -117,11 +120,12 @@ function doGet(e) {
         var _get_data = function (_config, _original_value) {
             if (_config.fetch === true) {
                 if (_full_text === null && typeof(_item.link) === "string") {
-                    var _cache = cache.get(_item.link);
+                    var _cache = cache_get(_item.link);
+                    //_cache = null;
                     
                     if (_cache === null) {
                         _full_text = UrlFetchApp.fetch(_item.link).getContentText();
-                        cache.put(_item.link, _full_text);
+                        cache_put(_item.link, _full_text);
                     }
                     else {
                         _full_text = _cache;
@@ -334,7 +338,7 @@ var searchNeedle = function (text, header, footer) {
     var _parts = text.split(header);
     for (var _i = 1; _i < _parts.length; _i++) {
         var _part = _parts[_i].trim();
-        if (footer !== undefined) {
+        if (footer !== undefined && _part.indexOf(footer) > -1) {
             _part = _part.substring(0, _part.indexOf(footer));
         }
         _output.push(_part);
@@ -598,9 +602,54 @@ var parse_image = function (_html) {
     return _output;
 };
 
+var starts_with = function (_str, _needle) {
+    if (typeof(_str) !== "string") {
+        return false;
+    }
+    return (_str.indexOf(_needle) === 0);
+};
+
 var ends_with = function (_str, _needle) {
     if (typeof(_str) !== "string") {
         return false;
     }
     return (_str.lastIndexOf(_needle) === _str.length - _needle.length);
+};
+
+
+var cache_put = function (_key, _data) {
+    var cache = CacheService.getScriptCache();
+    var _cache_limit = 100000;
+    var _split_data = [];
+    while (_data.length > _cache_limit) {
+        var _d = _data.substr(0, _cache_limit);
+        _split_data.push(_d);
+        _data = _data.substring(_cache_limit, _data.length);
+    }
+    _split_data.push(_data);
+    
+    for (var _i = 0; _i < _split_data.length; _i++) {
+        cache.put(_i + "|" + _key, _split_data[_i]);
+    }
+};
+
+var cache_get = function (_key) {
+    //return null;
+    var cache = CacheService.getScriptCache();
+    
+    var _i = 0;
+    var _split_data = [];
+    do {
+        var _d = cache.get(_i + "|" + _key);
+        if (_i === 0 && _d === null) {
+            return null;
+        }
+        else if (_i > 0 && _d === null) {
+            break;
+        }
+        _split_data.push(_d);
+        _i++;
+    } while (true);
+    
+    return _split_data.join("");
 };

@@ -1,13 +1,14 @@
 /**
  * @author Pulipuli Chen 20180722
- * https://script.google.com/d/14ZpRNJ5er0ha-4954gUa3NCgBR9APiEuaW-C9nrWCzhaaeQWraxcn_Y-/edit?splash=yes
+ * https://script.google.com/macros/d/176AMATTEe2lRMtydLisuxDlRsWrkVrj2v3HLRwc-w1QtcZhXFXBDg7B6/edit?splash=yes&splash=yes&splash=yes&splash=yes
  */
 
 CONFIG = {
-    feed_url: "http://www.eprice.com.tw/news/rss.xml",
-    //image_url: "http://img.eprice.com.tw/img/tw/common/header/logo.filpboard.png",
+    feed_url: "https://www.oschina.net/news/rss",
+    //site_url: "https://www.ptt.cc/bbs/Hearthstone/index.html",
+    //image_url: "https://lh3.googleusercontent.com/-k2Xxx7EmyGw/W1SUIviPS7I/AAAAAAADySg/WNpAKLKXz282Td-WdKQr0_VYbAjn2LfeQCHMYCw/s0/2018-07-22_22-26-01.png",
     //langauge: 'zh-TW',
-    limit: null,
+    limit: 10,
     title: {
         fetch: false,
         filter: function (title, link) {
@@ -15,52 +16,133 @@ CONFIG = {
         }
     },
     author: {
-        fetch: false,
-        exclude_list: [
-            "活動小組(eprice_sp)"
-        ],
+        fetch: true,
+        exclude_list: [],
         filter: function (author, link) {
+            if (starts_with(link,'https://www.oschina.net/p/')) {
+                author = searchNeedle(author, '<label class="text-green">软件作者:</label>', '</a>')[0];
+                author = searchNeedle(author, '>')[0];
+            }
+            else if (starts_with(link,'https://www.oschina.net/translate/')) {
+                var _authors = searchNeedle(author, '<span class="translator-user">', '</span>');
+                var _authors_array = [];
+                for (var _i = 0; _i < _authors.length; _i++) {
+                    _authors_array.push(searchNeedle(_authors[_i], "target='_blank'>", '</a>')[0]);
+                }
+                author = _authors_array.join(", ");
+            }
+            else if (starts_with(link,'https://gitee.com/')) {
+                author = searchNeedle(link, "https://gitee.com/", '/')[0];
+            }
+            else if (starts_with(link,'https://my.oschina.net/u/')) {
+                author = searchNeedle(author, '<div class="osc-avatar small-portrait _35x35 avatar" title="', '" data-user-id="')[0];
+            }
             return author;
         }
     },
     description: {
         fetch: true,
         filter: function (description, link) {
+            var cache = CacheService.getScriptCache();
             
-            //var _header = '<div class="user-comment-block"  itemprop="description">';
-            var _header = '<div class="user-comment-block"';
-            //var _footer = '<div class="signature">http://www.eprice.com.tw 最新最快的資訊都在 ePrice 比價王！</div>';
-            var _footer = '<div class="signature">';
-            description = searchNeedle(description, _header, _footer)[0];
-            if (description === undefined) {
-                throw "description parsing error: " + link;
+            if (starts_with(link,'https://www.oschina.net/p/')) {
+                description = searchNeedle(description, '<div class="detail editor-viewer all" v-pre>', '<div name="www_project_detail_content_button"')[0];
+                while(ends_with(description, '</div>')) {
+                    description = remove_suffix(description, '</div>').trim();
+                }
             }
-            description = remove_prefix(description, 'itemprop="description">');
-            
-            description = description.split('.tmp" data-original="').join('" data-original-tmp="');
-            
-            description = remove_scripts(description).trim();
-            description = remove_nbsp(description).trim();
-            
-            // 先刪去最後的div
-            while (ends_with(description, '</div>')) {
-                description = remove_suffix(description, '</div>').trim();
+            else if (starts_with(link,'https://www.oschina.net/translate/')) {
+                // https://www.oschina.net/translate/evolution-of-windows-command-line
+                var _parse_description = function (_description) {
+                    //return _description;
+                    
+                    //_description = searchNeedle(_description, '<div class="box paragraph-container">', '<div class="paging">')[0];
+                    var _content_parts = searchNeedle(_description, '<div class="content">', '<div class="translator-info">');
+                    for (var _i = 0; _i < _content_parts.length; _i++) {
+                        while(ends_with(_content_parts[_i], '</div>')) {
+                            _content_parts[_i] = remove_suffix(_content_parts[_i], '</div>').trim();
+                        }
+                    }
+                    //return _description;
+                    /*
+                    if (_description.lastIndexOf('<div class="paging">') > 0) {
+                        _description = _description.substr(0, _description.lastIndexOf('<div class="paging">')).trim();
+                    }
+                    while(ends_with(_description, '</div>')) {
+                        _description = remove_suffix(_description, '</div>').trim();
+                    }
+                    */
+                   _description = _content_parts.join("");
+                    return _description;
+                };
+                
+                var _get_next_page = function (_description) {
+                    var _needle = '<li class=\'page next\'><a href="';
+                    if (_description.indexOf(_needle) > -1) {
+                        var _href = searchNeedle(_description, _needle, '">&gt;</a>')[0];
+                        var _page_link = link;
+                        if (_page_link.lastIndexOf("?") > 0) {
+                            _page_link = _page_link.substr(0, _page_link.lastIndexOf("?"));
+                        }
+                        _page_link = _page_link + _href;
+                        return _page_link;
+                    }
+                    else {
+                        return false;
+                    }
+                };
+                
+                var _results = [];
+                //var _page_link = link + '?lang=chs&page=1';
+                var _page_link = false;
+                do {
+                    if (_page_link !== false) {
+                        var _page_cache = cache_get(_page_link);
+                        if (_page_cache !== null) {
+                            description = _page_cache;
+                        }
+                        else {
+                            description = UrlFetchApp.fetch(_page_link).getContentText();
+                            cache_put(_page_link, description);
+                        }
+                    }
+                    
+                    _results.push(_parse_description(description));
+                    _page_link = _get_next_page(description);
+                    //break;
+                    if (_page_link !== false) {
+                        _results.push('<hr />');
+                    }
+                }
+                while (_page_link !== false);
+                
+                //description = _parse_description(description);
+                // 取得下一頁
+                
+                description = _results.join("");
             }
-            
-            // 刪去最後的br
-            while (ends_with(description, '<br />')) {
-                description = remove_suffix(description, '<br />').trim();
+            else if (starts_with(link,'https://gitee.com/')) {
+                description = searchNeedle(description, "<div class='file_content markdown-body'>", '<script>')[0];
+                while(ends_with(description, '</div>')) {
+                    description = remove_suffix(description, '</div>').trim();
+                }
             }
-            
+            else if (starts_with(link,'https://my.oschina.net/')) {
+                // https://my.oschina.net/u/3413999/blog/1855035
+                description = searchNeedle(description, '<div class="content" id="articleContent">', '&copy; 著作权归作者所有')[0];
+                description = description.substring(description.indexOf('</div>')+6, description.lastIndexOf('<div class="ad-wrap">')).trim();
+            }
+            else if (starts_with(link,'https://www.oschina.net/news/')) {
+                // https://www.oschina.net/news/98236/announce-data-transfer-project
+                description = searchNeedle(description, '<div class="editor-viewer text clear">', '<div class="news_detai_down_ad">')[0];
+                description = description.substring(description.indexOf('</div>')+6, description.length).trim();
+            }
             return description;
         }
     }
 };
 
 // -------------------------------------
-/**
- * @author Pulipuli Chen 20180723 00:47
- */
 
 function doGet(e) {
     var redirect = e.parameter.redirect;
