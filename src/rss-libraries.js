@@ -1,5 +1,8 @@
 /**
  * @author Pulipuli Chen 20180723 00:47
+ * https://script.google.com/macros/d/176AMATTEe2lRMtydLisuxDlRsWrkVrj2v3HLRwc-w1QtcZhXFXBDg7B6/edit?splash=yes&splash=yes&splash=yes&splash=yes
+ * 
+ * Library: MApiMsKOda8tkYBUGtf79u-fsV96KBLp6
  */
 
 doGet = function (CONFIG, e) {
@@ -14,6 +17,9 @@ doGet = function (CONFIG, e) {
         return HtmlService.createHtmlOutput("<script>location.href='" + redirect + "';</script>");
     }
     */
+    if (typeof(CONFIG.feed_url) !== "string" && typeof(e.parameter.feed) === "string") {
+        CONFIG.feed_url = decodeURIComponent(e.parameter.feed);
+    }
 
     // ------------------------
     //var cache = CacheService.getScriptCache();
@@ -50,8 +56,19 @@ doGet = function (CONFIG, e) {
     }
     if (typeof(_rss_data.channel.image) === "object") {
         var _image = _rss_data.channel.image;
-        if (typeof(_image.url) === "undefined" && typeof(CONFIG.image_url) === "string") {
+        if (typeof(_image.url) === "undefined" && typeof(CONFIG.image_url) !== "undefined") {
             _image.url = CONFIG.image_url;
+            if (typeof(_image.url) === "function") {
+                var _image_key = "image_key_" + _rss_data.channel.link;
+                var _cache = cache_get(_image_key);
+                if (_cache === null) {
+                    _image.url = _image.url(_rss_data.channel.link);
+                    cache_put(_image_key, _image.url);
+                }
+                else {
+                    _image.url = _cache;
+                }
+            }
         }
         if (typeof(_image.title) === "undefined" && typeof(_rss_data.channel.title) === "string") {
             _image.title = _rss_data.channel.title;
@@ -134,6 +151,9 @@ var makeRss = function () {
     var items = {};
 
     var createElement = function (element, text) {
+        if (text === undefined || text === null) {
+            throw element +" is undefined";
+        }
         return XmlService.createElement(element).setText(text);
     };
     
@@ -282,6 +302,10 @@ var formatDate = function (dateString) {
 };
 
 var searchNeedle = function (text, header, footer) {
+    if (typeof(text) !== "string") {
+        return text;
+    }
+    
     var _output = [];
     var _parts = text.split(header);
     for (var _i = 1; _i < _parts.length; _i++) {
@@ -354,7 +378,7 @@ var parse_rss_v2 = function (_original_rss) {
         _data.link = parse_tag_text(_item_part, 'link');
         _data.description = parse_cdata(parse_tag_text(_item_part, 'description'));
         _data.author = parse_cdata(parse_tag_text(_item_part, 'author'));
-        _data.pubDate = parse_tag_text(_item_part, 'pubDate');
+        _data.pubDate = parse_tag_text(_item_part, 'published');
         
         var _enclosure_header = '<enclosure';
         if (_item_part.indexOf(_enclosure_header) > -1) {
@@ -379,46 +403,47 @@ var parse_rss_v2 = function (_original_rss) {
 };
 
 var parse_rss_atom = function (_original_rss) {
-    var _channel_header = '<feed xmlns="http://www.w3.org/2005/Atom">';
-    var _channel_footer = "</feed>";
     
-    var _channel_xml = _original_rss.substring(_original_rss.indexOf(_channel_header) + _channel_header.length
-        , _original_rss.lastIndexOf(_channel_footer)).trim();
+    _original_rss = _original_rss.split("<media:group").join("<media_group");
+    _original_rss = _original_rss.split("<media:description").join("<media_description");
+    _original_rss = _original_rss.split("<media:thumbnail").join("<media_thumbnail");
     
-    var _channel_part = _channel_xml.substr(0, _channel_xml.indexOf("<entry>")).trim();
+    var _rss = $(_original_rss);
     
     var _channel_data = {};
     
-    _channel_data.title = parse_cdata(parse_tag_text(_channel_part, 'title'));
-    
-    var _link = searchNeedle(_channel_part, '<link', '></link>')[0];
-    if (typeof(_link) === "string") {
-        _channel_data.link = searchNeedle(_link, 'href="', '"')[0];
-    }
-    
+    _channel_data.title = _rss("title").eq(0).text();
+    _channel_data.link = _rss("link").eq(0).attr("href");
     _channel_data.image = {};
     
     // ------------------------------------------
     
-    var _items = searchNeedle(_channel_xml, '<entry>', '</entry>');
+    //var _items = _rss("entry");
     var _items_data = [];
     
-    for (var _i = 0; _i < _items.length; _i++) {
-        var _item_part = _items[_i];
+    _rss("entry").each(function (_i, _item) {
+        var _item_part = $(_item);
         var _data = {};
-        _data.title = parse_cdata(parse_tag_text(_item_part, 'title'));
-        var _item_link = searchNeedle(_item_part, '<link', '></link>')[0];
-        if (typeof(_item_link) === "string") {
-            _data.link = searchNeedle(_item_link, 'href="', '"')[0];
+        _data.title = _item_part("title").text();
+        _data.author = _item_part("author > name").text();
+        _data.link = _item_part("link").attr("href");
+        _data.pubDate = _item_part("published").text();
+        
+        _data.description = "";
+        if (_item_part("content").length > 0) {
+            _data.description = _data.description + _item_part("content").text();
+        }
+        if (_item_part("media_group media_description").length > 0) {
+            _data.description = _data.description + _item_part("media_group media_description").text();
         }
         
-        _data.description = parse_cdata(searchNeedle(_item_part, '<content type="html">', '</content>')[0]);
-        _data.author = parse_cdata(parse_tag_text(_item_part, 'author'));
-        _data.author = parse_cdata(parse_tag_text(_data.author, 'name'));
-        _data.pubDate = parse_tag_text(_item_part, 'updated');
+        if (_item_part("media_group media_thumbnail").length > 0) {
+            _data.enclosure = {};
+            _data.enclosure.url = _item_part("media_group media_thumbnail").attr("url");
+        }
         
-        _items_data.push(_data);
-    }
+        _items_data.push(_data); 
+    });
     
     // -----------------
     
@@ -602,13 +627,59 @@ var cache_get = function (_key) {
     return _split_data.join("");
 };
 
-var fetch_url = function (_url) {
-    var _cache = cache_get(_url);
+var cache_remove = function (_key) {
+    //return null;
+    var cache = CacheService.getScriptCache();
+    var _i = 0;
+    do {
+        var _d = cache.get(_i + "|" + _key);
+        if (_d === null) {
+            return;
+        }
+        else {
+            cache.put(_i + "|" + _key, null);
+            return;
+        }
+        _i++;
+    } while (true);
+    return;
+};
+
+var fetch_url = function (_url, _enable_cache) {
+    var _cache = null;
+    //cache_remove(_url);
+    if (_enable_cache === undefined || _enable_cache === true) {
+        _cache = cache_get(_url);
+    }
+    else {
+        cache_remove(_url);
+    }
+    
     //_cache = null;
     var _output = null;
     if (_cache === null) {
         _output = UrlFetchApp.fetch(_url).getContentText();
         cache_put(_url, _output);
+        /*
+        if (_enable_cache === undefined || _enable_cache === true) {
+            cache_put(_url, _output);
+        }
+        else {
+            cache_remove(_url);
+        }
+        */
+    }
+    else {
+        _output = _cache;
     }
     return _output;
+};
+
+/**
+ * 使用說明 https://github.com/cheeriojs/cheerio
+ * 
+ * https://github.com/asciian/cheeriogs
+ */
+var $ = function (_html) {
+    return Cheerio.load(_html);
 };
