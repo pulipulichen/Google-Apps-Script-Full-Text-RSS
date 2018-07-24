@@ -13,8 +13,8 @@ function getQueryVariable(variable) {
 
 var _url = getQueryVariable('url');
 if (_url !== undefined) {
-    //location.href = decodeURIComponent(_url);
-    window.open(decodeURIComponent(_url), '_system');
+    location.href = decodeURIComponent(_url);
+    //window.open(decodeURIComponent(_url), '_system');
 } 
-window.close();
+//window.close();
 </script>
