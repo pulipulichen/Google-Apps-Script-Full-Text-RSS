@@ -5,6 +5,7 @@ https://github.com/pulipulichen/Google-Apps-Script-Full-Text-RSS
 
 Redirection script
 https://pulipulichen.github.io/Google-Apps-Script-Full-Text-RSS/redir.html?url=http://blog.pulipuli.info/
+https://pulipulichen.github.io/Google-Apps-Script-Full-Text-RSS/redir.html?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D7_YMm4ME_38
 
 ## 部署
 
