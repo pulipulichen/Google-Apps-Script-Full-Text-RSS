@@ -63,11 +63,20 @@ CONFIG = {
             return description;
         }
     },
-    site_link_filter: function (_link) {
-        return RSS_LIB.redirect_link(_link);
-    },
+    //site_link_filter: function (_link) {
+    //    return RSS_LIB.redirect_link(_link);
+    //},
     item_link_filter: function (_link) {
-        return RSS_LIB.redirect_link(_link);
+        //return RSS_LIB.redirect_link(_link);
+        var _base_url = 'https://pulipulichen.github.io/Google-Apps-Script-Full-Text-RSS/redir_yt.html?v=';
+        var _pos = _link.lastIndexOf('v=');
+        if (_pos === -1) {
+            return _link;
+        }
+        else {
+            _link = _link.substring(_pos+2, _link.length);
+            return _base_url + _link;
+        }
     },
 };
 

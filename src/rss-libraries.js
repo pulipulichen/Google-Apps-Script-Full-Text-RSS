@@ -5,7 +5,7 @@
  * Library: MApiMsKOda8tkYBUGtf79u-fsV96KBLp6
  */
 
-CACHE_ENABLE = false;
+CACHE_ENABLE = true;
 
 doGet = function (CONFIG, e) {
     /*
@@ -72,7 +72,7 @@ doGet = function (CONFIG, e) {
         _site_link = _rss_data.channel.link;
     }
     
-    if (typeof(CONFIG.site_link_filter) === "object") {
+    if (typeof(CONFIG.site_link_filter) === "function") {
         _site_link = CONFIG.site_link_filter(_site_link);
     }
     
@@ -114,6 +114,10 @@ doGet = function (CONFIG, e) {
         if (typeof(_image.link) === "undefined" && typeof(_rss_data.channel.link) === "string") {
             _image.link = _rss_data.channel.link;
         }
+        if (typeof(CONFIG.site_link_filter) === "function") {
+            _image.link = CONFIG.site_link_filter(_image.link);
+        }
+        
         rss.setImage(_image.url, _image.title, _image.link);
     }
     
