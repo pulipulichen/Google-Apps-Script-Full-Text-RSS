@@ -5,6 +5,8 @@
  * Library: MApiMsKOda8tkYBUGtf79u-fsV96KBLp6
  */
 
+CACHE_ENABLE = false;
+
 doGet = function (CONFIG, e) {
     /*
     var redirect = e.parameter.redirect;
@@ -19,6 +21,17 @@ doGet = function (CONFIG, e) {
     */
     if (typeof(CONFIG.feed_url) !== "string" && typeof(e.parameter.feed) === "string") {
         CONFIG.feed_url = decodeURIComponent(e.parameter.feed);
+    }
+    else if (typeof(CONFIG.feed_url) === "function") {
+        CONFIG.feed_url = CONFIG.feed_url(e);
+    }
+    
+    var _rss_cache_key = "rss_cache_key_" + CONFIG.feed_url;
+    var _rss_cache = cache_get(_rss_cache_key);
+    
+    if (_rss_cache !== null) {
+        return ContentService.createTextOutput(_rss_cache)
+            .setMimeType(ContentService.MimeType.RSS);
     }
 
     // ------------------------
@@ -36,6 +49,10 @@ doGet = function (CONFIG, e) {
     // channel的部分
     
     if (typeof(_rss_data.channel.title) === "string") {
+        if (typeof(CONFIG.feed_title) === "function") {
+            _rss_data.channel.title = CONFIG.feed_title(_rss_data.channel.title);
+        }
+        
         rss.setTitle(_rss_data.channel.title);
     }
     
@@ -62,7 +79,7 @@ doGet = function (CONFIG, e) {
                 var _image_key = "image_key_" + _rss_data.channel.link;
                 var _cache = cache_get(_image_key);
                 if (_cache === null) {
-                    _image.url = _image.url(_rss_data.channel.link);
+                    _image.url = _image.url(CONFIG.feed_url);
                     cache_put(_image_key, _image.url);
                 }
                 else {
@@ -133,7 +150,10 @@ doGet = function (CONFIG, e) {
         _item_added_count++;
     }
 
-    return ContentService.createTextOutput(rss.toString())
+    var _result = rss.toString();
+    cache_put(_rss_cache_key, _result, 180);
+
+    return ContentService.createTextOutput(_result)
             .setMimeType(ContentService.MimeType.RSS);
 }
 
@@ -378,7 +398,7 @@ var parse_rss_v2 = function (_original_rss) {
         _data.link = parse_tag_text(_item_part, 'link');
         _data.description = parse_cdata(parse_tag_text(_item_part, 'description'));
         _data.author = parse_cdata(parse_tag_text(_item_part, 'author'));
-        _data.pubDate = parse_tag_text(_item_part, 'published');
+        _data.pubDate = parse_tag_text(_item_part, 'pubDate');
         
         var _enclosure_header = '<enclosure';
         if (_item_part.indexOf(_enclosure_header) > -1) {
@@ -413,7 +433,12 @@ var parse_rss_atom = function (_original_rss) {
     var _channel_data = {};
     
     _channel_data.title = _rss("title").eq(0).text();
-    _channel_data.link = _rss("link").eq(0).attr("href");
+    if (_rss("link[rel=alternate]").length > 0) {
+        _channel_data.link = _rss("link[rel=alternate]").eq(0).attr("href");
+    }
+    else {
+        _channel_data.link = _rss("link").eq(0).attr("href");
+    }
     _channel_data.image = {};
     
     // ------------------------------------------
@@ -424,17 +449,17 @@ var parse_rss_atom = function (_original_rss) {
     _rss("entry").each(function (_i, _item) {
         var _item_part = $(_item);
         var _data = {};
-        _data.title = _item_part("title").text();
-        _data.author = _item_part("author > name").text();
+        _data.title = _item_part("title").text().trim();
+        _data.author = _item_part("author > name").text().trim();
         _data.link = _item_part("link").attr("href");
-        _data.pubDate = _item_part("published").text();
+        _data.pubDate = _item_part("published").text().trim();
         
         _data.description = "";
         if (_item_part("content").length > 0) {
-            _data.description = _data.description + _item_part("content").text();
+            _data.description = _data.description + _item_part("content").text().trim();
         }
         if (_item_part("media_group media_description").length > 0) {
-            _data.description = _data.description + _item_part("media_group media_description").text();
+            _data.description = _data.description + _item_part("media_group media_description").text().trim();
         }
         
         if (_item_part("media_group media_thumbnail").length > 0) {
@@ -590,7 +615,11 @@ var ends_with = function (_str, _needle) {
 };
 
 
-var cache_put = function (_key, _data) {
+var cache_put = function (_key, _data, _second) {
+    if (_second === undefined) {
+        _second = 21600;
+    }
+    
     var cache = CacheService.getScriptCache();
     var _cache_limit = 100000;
     var _split_data = [];
@@ -602,18 +631,30 @@ var cache_put = function (_key, _data) {
     _split_data.push(_data);
     
     for (var _i = 0; _i < _split_data.length; _i++) {
-        cache.put(_i + "|" + _key, _split_data[_i]);
+        cache.put(cache_key(_i, _key), _split_data[_i], _second);
     }
 };
 
+var cache_key = function (_i, _key) {
+    var _cache_key = _i + "|" + _key;
+    if (_cache_key.length > 100) {
+        _cache_key = _cache_key.substr(0, 100);
+    }
+    return _cache_key;
+};
+
 var cache_get = function (_key) {
+    if (CACHE_ENABLE === false) {
+        return null;
+    }
+    
     //return null;
     var cache = CacheService.getScriptCache();
     
     var _i = 0;
     var _split_data = [];
     do {
-        var _d = cache.get(_i + "|" + _key);
+        var _d = cache.get(cache_key(_i, _key));
         if (_i === 0 && _d === null) {
             return null;
         }
@@ -632,12 +673,12 @@ var cache_remove = function (_key) {
     var cache = CacheService.getScriptCache();
     var _i = 0;
     do {
-        var _d = cache.get(_i + "|" + _key);
+        var _d = cache.get(cache_key(_i, _key));
         if (_d === null) {
             return;
         }
         else {
-            cache.put(_i + "|" + _key, null);
+            cache.put(cache_key(_i, _key), null);
             return;
         }
         _i++;

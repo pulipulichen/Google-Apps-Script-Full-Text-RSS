@@ -130,8 +130,10 @@ CONFIG = {
             }
             else if (RSS_LIB.starts_with(link,'https://www.oschina.net/news/')) {
                 // https://www.oschina.net/news/98236/announce-data-transfer-project
-                description = RSS_LIB.searchNeedle(description, '<div class="editor-viewer text clear">', '<div class="news_detai_down_ad">')[0];
-                description = description.substring(description.indexOf('</div>')+6, description.length).trim();
+                //description = RSS_LIB.searchNeedle(description, '<div class="editor-viewer text clear">', '<div class="news_detai_down_ad">')[0];
+                //description = description.substring(description.indexOf('</div>')+6, description.length).trim();
+                var _needle = '<!-- 广告2.0  -->';
+                description = description.substring(description.indexOf(_needle) + _needle.length, description.lastIndexOf(_needle)).trim();
             }
             return description;
         }

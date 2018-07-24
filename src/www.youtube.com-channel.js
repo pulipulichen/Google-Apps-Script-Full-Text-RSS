@@ -6,9 +6,19 @@
  */
 
 CONFIG = {
-    feed_url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA",
+    //feed_url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA",
+    feed_url: function (e) {
+        //return "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA";
+        if (typeof(e.parameter.channel) === "undefined") {
+            return "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA";
+        }
+        return "https://www.youtube.com/feeds/videos.xml?channel_id=" + e.parameter.channel;
+    },
+    feed_title: function (_title) {
+        return _title + ' [YouTube]';
+    },
     image_url: function (_feed_url) {
-        
+        //return _feed_url;
         // http://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA
         // https://www.youtube.com/channel/UCbr1TwV0Tk7LeQ5Yzi0vRxA
         var _needle = "?channel_id=";
@@ -30,7 +40,7 @@ CONFIG = {
     parse_feed: function (_html) {
         return RSS_LIB.parse_rss_atom(_html);
     },
-    //limit: 2,
+    limit: 5,
     title: {
         fetch: false,
         filter: function (title, link) {
@@ -48,7 +58,8 @@ CONFIG = {
         fetch: false,
         filter: function (description, link) {
             description = "<pre>" + description + "</pre>";
-            description = '<iframe width="560" height="315" src="' + link + '" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>' + description;            
+            var _youtube_id = link.substring(link.lastIndexOf("?v=")+3, link.length);
+            //description = '<iframe class="youtube-player" type="text/html" src="//www.youtube.com/embed/' + _youtube_id + '" frameborder="0" allowfullscreen></iframe>' + description;            
             return description;
         }
     }
