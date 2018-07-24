@@ -9,7 +9,8 @@ CONFIG = {
     limit: 5,
     //feed_url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA",
     feed_url: function (e) {
-        //return "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA";
+        //貓 return "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA";
+        //鴨子 UCoOY8_LHn6EBM25BN2_z0Ww
         if (typeof(e.parameter.channel) === "undefined") {
             return "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA";
         }
@@ -57,8 +58,12 @@ CONFIG = {
     description: {
         fetch: false,
         filter: function (description, link) {
+            var _yt_needle = 'https://youtu.be/';
+            var _yt_replace = 'https://pulipulichen.github.io/Google-Apps-Script-Full-Text-RSS/redir_yt.html?v=';
+            description = description.split(_yt_needle).join(_yt_replace);
+            
             description = "<pre>" + description + "</pre>";
-            var _youtube_id = link.substring(link.lastIndexOf("?v=")+3, link.length);
+            //var _youtube_id = link.substring(link.lastIndexOf("?v=")+3, link.length);
             //description = '<iframe class="youtube-player" type="text/html" src="//www.youtube.com/embed/' + _youtube_id + '" frameborder="0" allowfullscreen></iframe>' + description;            
             return description;
         }
@@ -66,6 +71,7 @@ CONFIG = {
     //site_link_filter: function (_link) {
     //    return RSS_LIB.redirect_link(_link);
     //},
+    
     item_link_filter: function (_link) {
         //return RSS_LIB.redirect_link(_link);
         var _base_url = 'https://pulipulichen.github.io/Google-Apps-Script-Full-Text-RSS/redir_yt.html?v=';
