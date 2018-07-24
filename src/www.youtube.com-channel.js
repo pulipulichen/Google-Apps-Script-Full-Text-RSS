@@ -3,6 +3,8 @@
  * https://script.google.com/macros/d/1GjFxz1LEPehdFDl3BharWCrkY4lzJquKDstbyR8sIp4V6lu5PKVZQ0UI/edit?splash=yes&splash=yes&splash=yes&splash=yes&splash=yes
  * 
  * Library: MApiMsKOda8tkYBUGtf79u-fsV96KBLp6
+ * 
+ * https://script.google.com/macros/s/AKfycbw3A2NjuC6rhEam3AWfxdy04ZuAbyNfJPSTRX9qATh2egwfdRw/exec?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA&t=1502
  */
 
 CONFIG = {
