@@ -6,6 +6,7 @@
  */
 
 CONFIG = {
+    limit: 5,
     //feed_url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA",
     feed_url: function (e) {
         //return "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA";
@@ -40,7 +41,6 @@ CONFIG = {
     parse_feed: function (_html) {
         return RSS_LIB.parse_rss_atom(_html);
     },
-    limit: 5,
     title: {
         fetch: false,
         filter: function (title, link) {
@@ -62,7 +62,13 @@ CONFIG = {
             //description = '<iframe class="youtube-player" type="text/html" src="//www.youtube.com/embed/' + _youtube_id + '" frameborder="0" allowfullscreen></iframe>' + description;            
             return description;
         }
-    }
+    },
+    site_link_filter: function (_link) {
+        return RSS_LIB.redirect_link(_link);
+    },
+    item_link_filter: function (_link) {
+        return RSS_LIB.redirect_link(_link);
+    },
 };
 
 // -------------------------------------

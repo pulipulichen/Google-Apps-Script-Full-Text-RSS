@@ -5,7 +5,7 @@
 
 CONFIG = {
     feed_url: "http://rss.ptt.cc/Hearthstone.xml",
-    site_url: "https://www.ptt.cc/bbs/Hearthstone/index.html",
+    site_link: "https://www.ptt.cc/bbs/Hearthstone/index.html",
     image_url: "https://lh3.googleusercontent.com/-k2Xxx7EmyGw/W1SUIviPS7I/AAAAAAADySg/WNpAKLKXz282Td-WdKQr0_VYbAjn2LfeQCHMYCw/s0/2018-07-22_22-26-01.png",
     //langauge: 'zh-TW',
     limit: null,

@@ -1,6 +1,11 @@
 # Google-Apps-Script-Full-Text-RSS
 Building full text RSS feeds with Google Apps Script
 
+https://github.com/pulipulichen/Google-Apps-Script-Full-Text-RSS
+
+Redirection script
+https://pulipulichen.github.io/Google-Apps-Script-Full-Text-RSS/redir.html?url=http://blog.pulipuli.info/
+
 ## 部署
 
 Google Apps Script 似乎有 [Quota 限制](https://developers.google.com/apps-script/guides/services/quotas)，建議自行部署，步驟如下：

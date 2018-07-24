@@ -56,12 +56,33 @@ doGet = function (CONFIG, e) {
         rss.setTitle(_rss_data.channel.title);
     }
     
-    if (typeof(CONFIG.site_url) === "string") {
-        rss.setLink(redirect_link(CONFIG.site_url));
+    // -------------------------
+    // site link的處理
+    
+    var _site_link;
+    if (typeof(CONFIG.site_link) === "string") {
+        //rss.setLink(redirect_link(CONFIG.site_url));
+        _site_link = CONFIG.site_link;
+    }
+    else if (typeof(CONFIG.site_url) === "string") {
+        //rss.setLink(redirect_link(CONFIG.site_url));
+        _site_link = CONFIG.site_url;
     }
     else if (typeof(_rss_data.channel.link) === "string") {
-        rss.setLink(redirect_link(_rss_data.channel.link));
+        _site_link = _rss_data.channel.link;
     }
+    
+    if (typeof(CONFIG.site_link_filter) === "object") {
+        _site_link = CONFIG.site_link_filter(_site_link);
+    }
+    
+    if (typeof(_site_link) === "string") {
+        rss.setLink(_site_link);
+    }
+    
+    // ----------------------------------
+        
+    
     if (typeof(_rss_data.channel.description) === "string") {
         rss.setDescription(_rss_data.channel.description);
     }
@@ -136,12 +157,17 @@ doGet = function (CONFIG, e) {
             _item.description = _get_data(CONFIG.description, _item.description);
         }
         
-        if (typeof(_item.link) !== "undefined") {
-            _item.link = redirect_link(_item.link);
-        }
+        //if (typeof(_item.link) !== "undefined") {
+        //    _item.link = redirect_link(_item.link);
+        //}
         
         if (typeof(_item.pubDate) !== "undefined") {
             _item.pubDate = formatDate(_item.pubDate);
+        }
+        
+        // link的處理一定要最後
+        if (typeof(CONFIG.item_link_filter) === "function") {
+            _item.link = CONFIG.item_link_filter(_item.link);
         }
         
         // -----------------
@@ -487,10 +513,9 @@ var parse_tag_text = function (_text, _tag_name) {
 };
 
 var redirect_link = function (_link) {
-    return _link;
     
-    var atomLink = ScriptApp.getService().getUrl();
-    atomLink = atomLink + "?redirect=" + encodeURIComponent(_link);
+    var atomLink = "https://pulipulichen.github.io/Google-Apps-Script-Full-Text-RSS/redir.html?url=";
+    atomLink = atomLink + encodeURIComponent(_link);
     return atomLink;
 };
 
