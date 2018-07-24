@@ -57,12 +57,16 @@ CONFIG = {
     },
     description: {
         fetch: false,
-        filter: function (description, link) {
+        filter: function (description, link, _item) {
             var _yt_needle = 'https://youtu.be/';
             var _yt_replace = 'https://pulipulichen.github.io/Google-Apps-Script-Full-Text-RSS/redir_yt.html?v=';
             description = description.split(_yt_needle).join(_yt_replace);
             
+            
             description = "<pre>" + description + "</pre>";
+            if (typeof(_item.enclosure) === "object" && typeof(_item.enclosure.url) === "string") {
+                description = '<img src="' + _item.enclosure.url + '" /><br />' + description;
+            }
             //var _youtube_id = link.substring(link.lastIndexOf("?v=")+3, link.length);
             //description = '<iframe class="youtube-player" type="text/html" src="//www.youtube.com/embed/' + _youtube_id + '" frameborder="0" allowfullscreen></iframe>' + description;            
             return description;

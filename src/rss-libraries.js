@@ -141,7 +141,11 @@ doGet = function (CONFIG, e) {
                 _original_value = _full_text;
             }
             
-            return _config.filter(_original_value, _item.link);
+            if (typeof(_config.filter) === "function") {
+                _original_value = _config.filter(_original_value, _item.link, _item);
+            }
+            
+            return _original_value;
         };
         
         var _is_excluded = function (_config, _value) {
