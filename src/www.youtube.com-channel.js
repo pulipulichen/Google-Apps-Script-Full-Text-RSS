@@ -2,13 +2,14 @@
  * @author Pulipuli Chen 20180723
  * https://script.google.com/macros/d/1GjFxz1LEPehdFDl3BharWCrkY4lzJquKDstbyR8sIp4V6lu5PKVZQ0UI/edit?splash=yes&splash=yes&splash=yes&splash=yes&splash=yes
  * 
- * Library: MApiMsKOda8tkYBUGtf79u-fsV96KBLp6
+ * RSS_LIB: MApiMsKOda8tkYBUGtf79u-fsV96KBLp6
  * 
- * https://script.google.com/macros/s/AKfycbw3A2NjuC6rhEam3AWfxdy04ZuAbyNfJPSTRX9qATh2egwfdRw/exec?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA&t=1502
+ * https://script.google.com/macros/s/AKfycbw3A2NjuC6rhEam3AWfxdy04ZuAbyNfJPSTRX9qATh2egwfdRw/exec?channel=UC7iIGOn477JNYG7WcNDmStw&t=1502
  */
 
 CONFIG = {
-    limit: 5,
+    //cache_enable: false,
+    //limit: 5,
     //feed_url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA",
     feed_url: function (e) {
         //貓 return "https://www.youtube.com/feeds/videos.xml?channel_id=UCbr1TwV0Tk7LeQ5Yzi0vRxA";

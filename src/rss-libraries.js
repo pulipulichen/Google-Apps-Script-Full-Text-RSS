@@ -2,12 +2,17 @@
  * @author Pulipuli Chen 20180723 00:47
  * https://script.google.com/macros/d/176AMATTEe2lRMtydLisuxDlRsWrkVrj2v3HLRwc-w1QtcZhXFXBDg7B6/edit?splash=yes&splash=yes&splash=yes&splash=yes
  * 
- * Library: MApiMsKOda8tkYBUGtf79u-fsV96KBLp6
+ * RSS_LIB: MApiMsKOda8tkYBUGtf79u-fsV96KBLp6
  */
 
 CACHE_ENABLE = true;
 
 doGet = function (CONFIG, e) {
+    
+    if (typeof(CONFIG.cache_enable) === "boolean" && CONFIG.cache_enable === false) {
+        CACHE_ENABLE = false;
+    }
+    
     /*
     var redirect = e.parameter.redirect;
     if (redirect !== undefined) {
@@ -63,6 +68,9 @@ doGet = function (CONFIG, e) {
     if (typeof(CONFIG.site_link) === "string") {
         //rss.setLink(redirect_link(CONFIG.site_url));
         _site_link = CONFIG.site_link;
+    }
+    else if (typeof(CONFIG.site_link) === "function") {
+        _site_link = CONFIG.site_link(e);
     }
     else if (typeof(CONFIG.site_url) === "string") {
         //rss.setLink(redirect_link(CONFIG.site_url));
@@ -513,6 +521,10 @@ var parse_rss_atom = function (_original_rss) {
 };
 
 var parse_tag_text = function (_text, _tag_name) {
+    if (_text === null || _text === undefined) {
+        return;
+    }
+    
     var _value = searchNeedle(_text, '<' + _tag_name + '>', '</' + _tag_name + '>')[0];
     if (_value !== undefined) {
         _value = _value.trim();
@@ -607,6 +619,25 @@ var parse_image = function (_html) {
         else {
             var _img_id = _part.substr(0, _part.indexOf('</a>'));
             var _img_html = '<br /><img src="http://i.imgur.com/' + _img_id + '" />';
+            _part = _img_id + _img_html + _part.substring(_part.indexOf('</a>'), _part.length);
+            _output = _output + _needle + _part;
+        }
+    }
+    
+    
+    // ----------------------------
+    _html = _output;
+    var _output = "";
+    var _needle = '" target="_blank" rel="nofollow">https://i.imgur.com/';
+    var _parts = _html.split(_needle);
+    for (var _i = 0; _i < _parts.length; _i++) {
+        var _part = _parts[_i];
+        if (_i === 0) {
+            _output = _part;
+        }
+        else {
+            var _img_id = _part.substr(0, _part.indexOf('</a>'));
+            var _img_html = '<br /><img src="https://i.imgur.com/' + _img_id + '" />';
             _part = _img_id + _img_html + _part.substring(_part.indexOf('</a>'), _part.length);
             _output = _output + _needle + _part;
         }
