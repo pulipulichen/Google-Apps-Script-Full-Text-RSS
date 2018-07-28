@@ -584,6 +584,24 @@ var parse_image = function (_html) {
     // ----------------------------
     _html = _output;
     var _output = "";
+    var _needle = '" target="_blank" rel="nofollow">https://i.imgur.com/';
+    var _parts = _html.split(_needle);
+    for (var _i = 0; _i < _parts.length; _i++) {
+        var _part = _parts[_i];
+        if (_i === 0) {
+            _output = _part;
+        }
+        else {
+            var _img_id = _part.substr(0, _part.indexOf('</a>'));
+            var _img_html = '<br /><img src="https://i.imgur.com/' + _img_id + '" />';
+            _part = _img_id + _img_html + _part.substring(_part.indexOf('</a>'), _part.length);
+            _output = _output + _needle + _part;
+        }
+    }
+    
+    // ----------------------------
+    _html = _output;
+    var _output = "";
     var _needle = '" target="_blank" rel="nofollow">https://pbs.twimg.com/media/';
     var _parts = _html.split(_needle);
     for (var _i = 0; _i < _parts.length; _i++) {
