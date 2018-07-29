@@ -28,8 +28,13 @@ CONFIG = {
         exclude_list: [],
         filter: function (author, link) {
             if (RSS_LIB.starts_with(link,'https://www.oschina.net/p/')) {
-                author = RSS_LIB.searchNeedle(author, '<label class="text-green">软件作者:</label>', '</a>')[0];
-                author = RSS_LIB.searchNeedle(author, '>')[0];
+                if (author.indexOf('<label class="text-green">软件作者:</label>') > -1) {
+                    author = RSS_LIB.searchNeedle(author, '<label class="text-green">软件作者:</label>', '</a>')[0];
+                    author = RSS_LIB.searchNeedle(author, '>')[0];
+                }
+                else {
+                    author = "";
+                }
             }
             else if (RSS_LIB.starts_with(link,'https://www.oschina.net/translate/')) {
                 var _authors = RSS_LIB.searchNeedle(author, '<span class="translator-user">', '</span>');
@@ -42,8 +47,11 @@ CONFIG = {
             else if (RSS_LIB.starts_with(link,'https://gitee.com/')) {
                 author = RSS_LIB.searchNeedle(link, "https://gitee.com/", '/')[0];
             }
-            else if (starts_with(link,'https://my.oschina.net/u/')) {
+            else if (RSS_LIB.starts_with(link,'https://my.oschina.net/')) {
                 author = RSS_LIB.searchNeedle(author, '<div class="osc-avatar small-portrait _35x35 avatar" title="', '" data-user-id="')[0];
+            }
+            else if (RSS_LIB.starts_with(link,'https://www.oschina.net/news/')) {
+                author = RSS_LIB.searchNeedle(author, '" class="mr green">', '</a>')[0];
             }
             return author;
         }

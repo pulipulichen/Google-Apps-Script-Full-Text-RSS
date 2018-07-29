@@ -48,7 +48,13 @@ doGet = function (CONFIG, e) {
     rss.setAtomlink(atomLink);
 
     var _original_rss = UrlFetchApp.fetch(CONFIG.feed_url).getContentText();
-    var _rss_data = CONFIG.parse_feed(_original_rss, CONFIG.feed_url);
+    var _rss_data;
+    try {
+        _rss_data = CONFIG.parse_feed(_original_rss, CONFIG.feed_url);
+    }
+    catch (_e) {
+        _rss_data = create_error_rss_data(CONFIG.feed_url, _e)
+    }
     
     // -------------------------------
     // channel的部分
@@ -146,18 +152,22 @@ doGet = function (CONFIG, e) {
         var _full_text = null;
         
         var _get_data = function (_config, _original_value) {
-            if (_config !== undefined && typeof(_config.fetch) === "boolean" && _config.fetch === true) {
-                if (_full_text === null && typeof(_item.link) === "string") {
-                    _full_text = fetch_url(_item.link);
+            try {
+                if (_config !== undefined && typeof(_config.fetch) === "boolean" && _config.fetch === true) {
+                    if (_full_text === null && typeof(_item.link) === "string") {
+                        _full_text = fetch_url(_item.link);
+                    }
+                    _original_value = _full_text;
                 }
-                _original_value = _full_text;
+
+                if (_config !== undefined && typeof(_config.filter) === "function" && typeof(_original_value) === "string") {
+                    _original_value = _config.filter(_original_value, _item.link, _item);
+                }
+
+                return _original_value;
+            } catch (_e) {
+                return "Item parse error: " + _e + " / " + JSON.stringify(_item);
             }
-            
-            if (_config !== undefined && typeof(_config.filter) === "function" && typeof(_original_value) === "string") {
-                _original_value = _config.filter(_original_value, _item.link, _item);
-            }
-            
-            return _original_value;
         };
         
         var _is_excluded = function (_config, _value) {
@@ -554,6 +564,33 @@ var parse_rss_atom = function (_original_rss) {
         
         _items_data.push(_data); 
     });
+    
+    // -----------------
+    
+    return {
+        channel: _channel_data,
+        item: _items_data
+    };
+};
+
+var create_error_rss_data = function (_feed_url, _e) {
+    
+    var _channel_data = {};
+    
+    _channel_data.title = _feed_url;
+    _channel_data.link = _feed_url;
+    _channel_data.image = {};
+    
+    // ------------------------------------------
+    
+    //var _items = _rss("entry");
+    var _items_data = [{
+            title: "rss parsing error: " + _e,
+            author: "system",
+            link: _feed_url,
+            pubDate: new Date(),
+            description: _feed_url + '<br />\n' + _e 
+    }];
     
     // -----------------
     

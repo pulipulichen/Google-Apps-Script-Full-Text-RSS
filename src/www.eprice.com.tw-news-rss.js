@@ -1,7 +1,11 @@
 /**
- * @author Pulipuli Chen 20180722
- * https://script.google.com/d/14ZpRNJ5er0ha-4954gUa3NCgBR9APiEuaW-C9nrWCzhaaeQWraxcn_Y-/edit?splash=yes
+ * @author Pulipuli Chen 20180730
+ * https://script.google.com/d/1GjFxz1LEPehdFDl3BharWCrkY4lzJquKDstbyR8sIp4V6lu5PKVZQ0UI/edit
+ * 
+ * For test: https://script.google.com/macros/s/AKfycbzurNqCSwJEY6n1tdKSN4KuyCCAlYtOGgtBeURB7y8/dev
+ * https://script.google.com/macros/s/AKfycbw3A2NjuC6rhEam3AWfxdy04ZuAbyNfJPSTRX9qATh2egwfdRw/exec
  */
+
 
 CONFIG = {
     feed_url: "http://www.eprice.com.tw/news/rss.xml",
