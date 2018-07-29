@@ -48,7 +48,7 @@ doGet = function (CONFIG, e) {
     rss.setAtomlink(atomLink);
 
     var _original_rss = UrlFetchApp.fetch(CONFIG.feed_url).getContentText();
-    var _rss_data = CONFIG.parse_feed(_original_rss);
+    var _rss_data = CONFIG.parse_feed(_original_rss, CONFIG.feed_url);
     
     // -------------------------------
     // channel的部分
@@ -153,7 +153,7 @@ doGet = function (CONFIG, e) {
                 _original_value = _full_text;
             }
             
-            if (_config !== undefined && typeof(_config.filter) === "function") {
+            if (_config !== undefined && typeof(_config.filter) === "function" && typeof(_original_value) === "string") {
                 _original_value = _config.filter(_original_value, _item.link, _item);
             }
             
@@ -164,22 +164,23 @@ doGet = function (CONFIG, e) {
             return (Array.isArray(_config.exclude_list) && _config.exclude_list.indexOf(_value) > -1);
         };
         
-        if (typeof(_item.title) !== "undefined") {
+        //if (typeof(_item.title) !== "undefined") {
             _item.title = _get_data(CONFIG.title, _item.title);
-        }
+        //}
         
-        if (typeof(_item.pubDate) !== "undefined") {
+        //if (typeof(_item.pubDate) !== "undefined") {
             _item.pubDate = _get_data(CONFIG.pubDate, _item.pubDate);
-        }
+            _item.pubDate = formatDate(_item.pubDate);
+        //}
         
-        if (typeof(_item.author) !== "undefined") {
+        //if (typeof(_item.author) !== "undefined") {
             _item.author = _get_data(CONFIG.author, _item.author);
             if (_is_excluded(CONFIG.author, _item.author)) {
                 continue;
             }
-        }
+        //}
         
-        if (typeof(_item.description) !== "undefined") {
+        //if (typeof(_item.description) !== "undefined") {
             _item.description = _get_data(CONFIG.description, _item.description);
             
             // 刪除多餘的tag
@@ -200,15 +201,12 @@ doGet = function (CONFIG, e) {
             _item.description = _$descript('body').children().html();
             */
             //_item.description = _$descript('body').children().children().length + '||' + _item.description;
-        }
+        //}
         
         //if (typeof(_item.link) !== "undefined") {
         //    _item.link = redirect_link(_item.link);
         //}
         
-        if (typeof(_item.pubDate) !== "undefined") {
-            _item.pubDate = formatDate(_item.pubDate);
-        }
         
         // link的處理一定要最後
         if (typeof(CONFIG.item_link_filter) === "function") {
@@ -373,6 +371,10 @@ var makeRss = function () {
 // ----------------------------------------------------
 
 var formatDate = function (dateString) {
+    if (dateString instanceof Date) {
+        return dateString;
+    }
+    
     try {
         /*
         var p = /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/;
