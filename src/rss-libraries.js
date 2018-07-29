@@ -100,6 +100,9 @@ doGet = function (CONFIG, e) {
     if (typeof(_rss_data.channel.copyright) === "string") {
         rss.setCopyright(_rss_data.channel.copyright);
     }
+    
+    // 20180729 因為feedly不吃image標籤，所以拿掉吧
+    /*
     if (typeof(_rss_data.channel.image) === "object") {
         var _image = _rss_data.channel.image;
         if (typeof(_image.url) === "undefined" && typeof(CONFIG.image_url) !== "undefined") {
@@ -128,6 +131,7 @@ doGet = function (CONFIG, e) {
         
         rss.setImage(_image.url, _image.title, _image.link);
     }
+    */
     
     // -----------------------------------------------------
     // item的部分
@@ -142,21 +146,15 @@ doGet = function (CONFIG, e) {
         var _full_text = null;
         
         var _get_data = function (_config, _original_value) {
-            if (_config.fetch === true) {
+            if (_config !== undefined && _config.fetch === true) {
                 if (_full_text === null && typeof(_item.link) === "string") {
                     _full_text = fetch_url(_item.link);
                 }
                 _original_value = _full_text;
             }
             
-            if (typeof(_config.filter) === "function") {
+            if (_config !== undefined && typeof(_config.filter) === "function") {
                 _original_value = _config.filter(_original_value, _item.link, _item);
-            }
-            
-            // 刪除多餘的tag
-            var _$descript = $('<div id="descript_get_data">' + _original_value + '</div>');
-            while (_$descript('#descript_get_data').children().length === 1) {
-                _$descript = $('<div id="descript_get_data">' + _$descript('#descript_get_data').children().children().html() + '</div>');
             }
             
             return _original_value;
@@ -169,14 +167,39 @@ doGet = function (CONFIG, e) {
         if (typeof(_item.title) !== "undefined") {
             _item.title = _get_data(CONFIG.title, _item.title);
         }
+        
+        if (typeof(_item.pubDate) !== "undefined") {
+            _item.pubDate = _get_data(CONFIG.pubDate, _item.pubDate);
+        }
+        
         if (typeof(_item.author) !== "undefined") {
             _item.author = _get_data(CONFIG.author, _item.author);
             if (_is_excluded(CONFIG.author, _item.author)) {
                 continue;
             }
         }
+        
         if (typeof(_item.description) !== "undefined") {
             _item.description = _get_data(CONFIG.description, _item.description);
+            
+            // 刪除多餘的tag
+            
+            var _$descript = $(_item.description);
+            var _parent = _$descript('body');
+            var _children = _parent.children();
+            if (_children.length === 1) {
+                _item.description = _children.html();
+            }
+            else {
+                _item.description = _parent.html();
+            }
+            /*
+            while (_$descript('body').children().length === 1) {
+                _$descript = $(_$descript('body').children().children().html());
+            }
+            _item.description = _$descript('body').children().html();
+            */
+            //_item.description = _$descript('body').children().children().length + '||' + _item.description;
         }
         
         //if (typeof(_item.link) !== "undefined") {
