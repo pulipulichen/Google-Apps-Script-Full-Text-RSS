@@ -409,6 +409,10 @@ var parse_rss_v2 = function (_original_rss) {
     var _channel_header = "<channel>";
     var _channel_footer = "</channel>";
     
+    if (_original_rss.indexOf(_channel_header) === -1) {
+        return parse_rss_atom(_original_rss);
+    }
+    
     var _channel_xml = _original_rss.substring(_original_rss.indexOf(_channel_header) + _channel_header.length
         , _original_rss.lastIndexOf(_channel_footer)).trim();
     
@@ -465,6 +469,11 @@ var parse_rss_v2 = function (_original_rss) {
 };
 
 var parse_rss_atom = function (_original_rss) {
+    
+    var _needle = 'xmlns="http://www.w3.org/2005/Atom"';
+    if (_original_rss.indexOf(_needle) === -1) {
+        return parse_rss_v2(_original_rss);
+    }
     
     _original_rss = _original_rss.split("<media:group").join("<media_group");
     _original_rss = _original_rss.split("<media:description").join("<media_description");
@@ -629,6 +638,44 @@ var parse_image = function (_html) {
     _html = _output;
     var _output = "";
     var _needle = '" target="_blank" rel="nofollow">https://i.imgur.com/';
+    var _parts = _html.split(_needle);
+    for (var _i = 0; _i < _parts.length; _i++) {
+        var _part = _parts[_i];
+        if (_i === 0) {
+            _output = _part;
+        }
+        else {
+            var _img_id = _part.substr(0, _part.indexOf('</a>'));
+            var _img_html = '<br /><img src="https://i.imgur.com/' + _img_id + '" />';
+            _part = _img_id + _img_html + _part.substring(_part.indexOf('</a>'), _part.length);
+            _output = _output + _needle + _part;
+        }
+    }
+    
+    
+    // ----------------------------
+    _html = _output;
+    var _output = "";
+    var _needle = '" target="_blank" rel="nofollow">https://imgur.com/';
+    var _parts = _html.split(_needle);
+    for (var _i = 0; _i < _parts.length; _i++) {
+        var _part = _parts[_i];
+        if (_i === 0) {
+            _output = _part;
+        }
+        else {
+            var _img_id = _part.substr(0, _part.indexOf('</a>'));
+            var _img_html = '<br /><img src="https://i.imgur.com/' + _img_id + '" />';
+            _part = _img_id + _img_html + _part.substring(_part.indexOf('</a>'), _part.length);
+            _output = _output + _needle + _part;
+        }
+    }
+    
+    
+    // ----------------------------
+    _html = _output;
+    var _output = "";
+    var _needle = '" target="_blank" rel="nofollow">http://imgur.com/';
     var _parts = _html.split(_needle);
     for (var _i = 0; _i < _parts.length; _i++) {
         var _part = _parts[_i];

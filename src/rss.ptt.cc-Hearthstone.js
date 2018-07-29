@@ -3,6 +3,7 @@
  * https://script.google.com/macros/d/1k1ZWPgvYBhxJpB1DXl0XyqU2-Bv7xhA9LuWu5pcQtghT7ZaF8hkBiZUg/edit?splash=yes&splash=yes
  * 
  * https://script.google.com/macros/s/AKfycbzAaM08-g2sTJO51WGdesc0I630-4oweSwKlNaEQy_qjrIOkkqb/exec?board=MabinogiHero
+ * https://script.google.com/macros/s/AKfycbzAaM08-g2sTJO51WGdesc0I630-4oweSwKlNaEQy_qjrIOkkqb/exec?board=PokemonGo
  * 
  * https://script.google.com/macros/s/AKfycbzD5Gb0AvRiFmUQQbGuUzzELz14ot0WrGl5B0lOGTaH/dev
  * 
