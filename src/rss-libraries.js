@@ -146,7 +146,7 @@ doGet = function (CONFIG, e) {
         var _full_text = null;
         
         var _get_data = function (_config, _original_value) {
-            if (_config !== undefined && _config.fetch === true) {
+            if (_config !== undefined && typeof(_config.fetch) === "boolean" && _config.fetch === true) {
                 if (_full_text === null && typeof(_item.link) === "string") {
                     _full_text = fetch_url(_item.link);
                 }
@@ -220,11 +220,14 @@ doGet = function (CONFIG, e) {
     }
 
     var _result = rss.toString();
+    
+    //_result = '<!-- ' + _fetch_url_count + ' --> ' + _result;
+    
     cache_put(_rss_cache_key, _result, 180);
 
     return ContentService.createTextOutput(_result)
             .setMimeType(ContentService.MimeType.RSS);
-}
+};
 
 // ------------------------------------------------------------------------------
 
@@ -833,6 +836,8 @@ var cache_remove = function (_key) {
     return;
 };
 
+var _fetch_url_count = 0;
+
 var fetch_url = function (_url, _enable_cache) {
     var _cache = null;
     //cache_remove(_url);
@@ -860,6 +865,7 @@ var fetch_url = function (_url, _enable_cache) {
     else {
         _output = _cache;
     }
+    _fetch_url_count++;
     return _output;
 };
 

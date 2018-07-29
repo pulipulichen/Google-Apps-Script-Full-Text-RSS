@@ -1,5 +1,6 @@
 /**
  * forum.gamer.com.tw
+ * 無法使用，放棄
  * 
  * @author Pulipuli Chen 20180728
  * https://script.google.com/macros/d/1AmJPDivqhLx1Rhl08B9PovcQVmQZ3x-2pYq1_6q9BRaErU-AFlh1JBxC/edit?splash=yes&splash=yes&splash=yes&splash=yes&splash=yes
@@ -13,7 +14,7 @@
  */
 
 CONFIG = {
-    cache_enable: false,
+    //cache_enable: false,
     feed_url: function (e) {
         var _bsn = e.parameter.bsn;
         if (typeof(_bsn) === "undefined") {
@@ -29,7 +30,7 @@ CONFIG = {
         return "https://forum.gamer.com.tw/B.php?bsn=" + _bsn + "&subbsn=0";
     },
     //image_url: "https://lh3.googleusercontent.com/-k2Xxx7EmyGw/W1SUIviPS7I/AAAAAAADySg/WNpAKLKXz282Td-WdKQr0_VYbAjn2LfeQCHMYCw/s0/2018-07-22_22-26-01.png",
-    limit: 1,
+    limit: 5,
     parse_feed: function (_html, _feed_url) {
         var $ = RSS_LIB.$(_html);
         
