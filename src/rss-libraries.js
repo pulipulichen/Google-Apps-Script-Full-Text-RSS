@@ -153,6 +153,12 @@ doGet = function (CONFIG, e) {
                 _original_value = _config.filter(_original_value, _item.link, _item);
             }
             
+            // 刪除多餘的tag
+            var _$descript = $('<div id="descript_get_data">' + _original_value + '</div>');
+            while (_$descript('#descript_get_data').children().length === 1) {
+                _$descript = $('<div id="descript_get_data">' + _$descript('#descript_get_data').children().children().html() + '</div>');
+            }
+            
             return _original_value;
         };
         
@@ -593,20 +599,25 @@ var remove_scripts = function (_html) {
         return _html;
     }
     
+    var _$html = $('<div id="remove_scripts">' + _html + '</div>');
+    _$html('script').remove();
+    return _$html('#remove_scripts').html();
+    /*
     var _output = '';
     var _parts = _html.split("<script");
     for (var _i = 0; _i < _parts.length; _i++) {
+        var _part = _parts[_i];
         if (_i === 0) {
-            _output = _parts[_i];
+            _output = _part;
         }
         else {
-            var _part = _parts[_i];
             _part = _part.substring(_part.indexOf("</script>") + 9 , _part.length).trim();
             _output = _output + _part;
         }
     }
+    */
     
-    return _output;
+    //return _output;
 };
 
 var remove_nbsp = function (_html) {
@@ -833,5 +844,15 @@ var fetch_url = function (_url, _enable_cache) {
  * https://github.com/asciian/cheeriogs
  */
 var $ = function (_html) {
+    return Cheerio.load(_html);
+};
+
+var $body = function (_html) {
+    if (_html.indexOf('<body') > -1) {
+        _html = _html.substring(_html.indexOf('<body'), _html.length);
+        if (_html.lastIndexOf('</body>') > -1) {
+            _html = _html.substr(0, _html.lastIndexOf('</body>') + 7);
+        }
+    }
     return Cheerio.load(_html);
 };

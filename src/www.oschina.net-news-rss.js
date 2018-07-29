@@ -1,9 +1,14 @@
 /**
  * @author Pulipuli Chen 20180722
- * https://script.google.com/macros/d/1k1ZWPgvYBhxJpB1DXl0XyqU2-Bv7xhA9LuWu5pcQtghT7ZaF8hkBiZUg/edit?splash=yes&splash=yes
+ * https://script.google.com/d/1niRFLoU-GCachOEZLXDJAMcAXPoC5gCtwIuQ7XJPYEF1r4_RX0YnL5Lv/edit
+ * 
+ * For test: https://script.google.com/macros/s/AKfycbx9b-BAk-Skw2zBBKEFWTon4iOldrKy7IBA51p6g1s/dev
+ * 
+ * RSS_LIB: MApiMsKOda8tkYBUGtf79u-fsV96KBLp6
  */
 
 CONFIG = {
+    //cache_enable: false,
     feed_url: "https://www.oschina.net/news/rss",
     //site_url: "https://www.ptt.cc/bbs/Hearthstone/index.html",
     //image_url: "https://lh3.googleusercontent.com/-k2Xxx7EmyGw/W1SUIviPS7I/AAAAAAADySg/WNpAKLKXz282Td-WdKQr0_VYbAjn2LfeQCHMYCw/s0/2018-07-22_22-26-01.png",
@@ -125,8 +130,12 @@ CONFIG = {
             }
             else if (RSS_LIB.starts_with(link,'https://my.oschina.net/')) {
                 // https://my.oschina.net/u/3413999/blog/1855035
-                description = RSS_LIB.searchNeedle(description, '<div class="content" id="articleContent">', '&copy; 著作权归作者所有')[0];
-                description = description.substring(description.indexOf('</div>')+6, description.lastIndexOf('<div class="ad-wrap">')).trim();
+                //description = RSS_LIB.searchNeedle(description, '<div class="content" id="articleContent">', '&copy; 著作权归作者所有')[0];
+                //description = description.substring(description.indexOf('</div>')+6, description.lastIndexOf('<div class="ad-wrap">')).trim();
+                
+                var $ = RSS_LIB.$body(description);
+                $(".ad-wrap").remove();
+                description = $('.article-detail').html();
             }
             else if (RSS_LIB.starts_with(link,'https://www.oschina.net/news/')) {
                 // https://www.oschina.net/news/98236/announce-data-transfer-project
@@ -134,6 +143,12 @@ CONFIG = {
                 //description = description.substring(description.indexOf('</div>')+6, description.length).trim();
                 var _needle = '<!-- 广告2.0  -->';
                 description = description.substring(description.indexOf(_needle) + _needle.length, description.lastIndexOf(_needle)).trim();
+                
+                description = RSS_LIB.remove_scripts(description);
+                
+                var $ = RSS_LIB.$(description);
+                $('.news_detai_above_ad').remove();
+                description = $("body").html();
             }
             return description;
         }
