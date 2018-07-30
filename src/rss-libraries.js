@@ -194,7 +194,7 @@ doGet = function (CONFIG, e) {
             _item.description = _get_data(CONFIG.description, _item.description);
             
             // 刪除多餘的tag
-            
+            /*
             var _$descript = $(_item.description);
             var _parent = _$descript('body');
             var _children = _parent.children();
@@ -204,6 +204,8 @@ doGet = function (CONFIG, e) {
             else {
                 _item.description = _parent.html();
             }
+            */
+        
             /*
             while (_$descript('body').children().length === 1) {
                 _$descript = $(_$descript('body').children().children().html());
@@ -657,6 +659,17 @@ var remove_suffix = function (_str, _needle) {
         _str = _str.substring(0, _str.length - _needle.length);
     }
     return _str;
+};
+
+var remove_single_child_tag = function (_html) {
+    var _$descript = $(_html);
+    var _parent = _$descript('body');
+    var _children = _parent.children();
+    if (_children.length === 1) {
+        return _children.html();
+    } else {
+        return _parent.html();
+    }
 };
 
 var remove_scripts = function (_html) {
