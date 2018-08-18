@@ -51,7 +51,9 @@ CONFIG = {
                 author = RSS_LIB.searchNeedle(author, '<div class="osc-avatar small-portrait _35x35 avatar" title="', '" data-user-id="')[0];
             }
             else if (RSS_LIB.starts_with(link,'https://www.oschina.net/news/')) {
-                author = RSS_LIB.searchNeedle(author, '" class="mr green">', '</a>')[0];
+                //author = RSS_LIB.searchNeedle(author, '" class="mr green">', '</a>')[0];
+                var $ = RSS_LIB.$body(author);
+                author = $('.__user .osc-avatar').attr("title");
             }
             return author;
         }
@@ -149,6 +151,8 @@ CONFIG = {
                 // https://www.oschina.net/news/98236/announce-data-transfer-project
                 //description = RSS_LIB.searchNeedle(description, '<div class="editor-viewer text clear">', '<div class="news_detai_down_ad">')[0];
                 //description = description.substring(description.indexOf('</div>')+6, description.length).trim();
+                
+                /*
                 var _needle = '<!-- 广告2.0  -->';
                 description = description.substring(description.indexOf(_needle) + _needle.length, description.lastIndexOf(_needle)).trim();
                 
@@ -157,6 +161,10 @@ CONFIG = {
                 var $ = RSS_LIB.$(description);
                 $('.news_detai_above_ad').remove();
                 description = $("body").html();
+                */
+                var $ = RSS_LIB.$body(description);
+                $(".ad-wrap").remove();
+                description = $('#articleContent').html();
             }
             return description;
         }
