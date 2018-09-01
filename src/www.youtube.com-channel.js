@@ -63,7 +63,8 @@ CONFIG = {
             description = description.split(_yt_needle).join(_yt_replace);
             
             
-            description = "<pre>" + description + "</pre>";
+            //description = "<pre>" + description + "</pre>";
+            description = RSS_LIB.pre_convert(description);
             if (typeof(_item.enclosure) === "object" && typeof(_item.enclosure.url) === "string") {
                 description = '<img src="' + _item.enclosure.url + '" /><br />' + description;
             }

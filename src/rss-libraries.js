@@ -919,6 +919,15 @@ var fetch_url = function (_url, _enable_cache) {
     return _output;
 };
 
+var pre_convert = function (content) {
+    
+    content = content.split("\n").join("<br />\n");
+    content = content.split(" ").join("&nbsp;");
+    content = '<div>' + content + '</div>';
+    
+    return content;
+};
+
 /**
  * 使用說明 https://github.com/cheeriojs/cheerio
  * 

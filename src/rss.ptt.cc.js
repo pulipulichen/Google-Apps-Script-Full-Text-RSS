@@ -56,7 +56,8 @@ CONFIG = {
                     
             description = RSS_LIB.remove_suffix(description, '--').trim();
                     
-            description = '<pre style="white-space: pre-wrap;">' + description + '</pre>';
+            //description = '<pre style="white-space: pre-wrap;">' + description + '</pre>';
+            description = RSS_LIB.pre_convert(description);
             return description;
         }
     }
